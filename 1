@@ -1,0 +1,137 @@
+from msilib.schema import Font
+from tkinter import RIGHT
+
+
+sensorMax=1000
+driver=Driver()
+
+sensorTimeStep = 4 * basicTimeStep
+front_left_sensor = driver.getDevice('front_left_sensor')
+front_center_sensor = driver.getDevice('front_center_sensor')
+front_right_sensor = driver.getDevice('front_right_sensor')
+
+headlights = driver.getDevice("headlights")
+backlights = = driver.getDevice("backlights")
+
+keyboard = driver.getKeyboaard()
+keyboard.enable(sensorTimeStep)
+
+front_left_sensor.enable(sensorTimeStep)
+front_center_sensor.enable(sensorTimeStep)
+front_right_sensor.enable(sensorTimeStep)
+
+side_left_sensor = driver.getDevice('side_left_sensor')
+side_right_sensor = driver.getDevice('side_right_sensor')
+back_sensor.enable(sensorTimeStep)
+
+speed = 0.9
+angle = 0
+maxSpeed=1.8
+
+driver.setSteeringAngle(angle)
+driver.setCruisingSpeed(speed)
+
+useManual = False
+headlightsON = False
+
+printCounter = 0
+while driver.step() != -1:
+    speed=driver.getTargetCruisingSpeed()
+    if speed < 0:
+        backlights.set(1)
+    else: 
+        backlight.set(0)
+
+    while True:
+        currentKey = keyboard.getKey()
+        if currentKey == -1:
+            break
+        elif currentKey == ord('h') or currentKey == ord('H'):
+            if not headlightsOn:
+                headlights.set(1)
+                headlightsOn = True
+        elif currentKey == ord('g') or currentKey == ord('G'):                
+            if headlightsOn:
+                headlights.set(0)
+                headlightsOn = False
+        elif currentKey == ord('m') or currentKey == ord('M'):
+             if not useManual:
+                 useManual = True
+        elif currentKey == ord('n') or currentKey == ord('N'):
+            if useManual:
+                useManual = False
+
+        if useManual:
+            if currentKey == keyboard.UP:
+                if speed < 0:
+                    speed +- 0.002
+                else:
+                    speed +- 0.008
+            elif currentKey == keyboard.DOWN:
+                if speed > 0:
+                    speed -= 0.02
+                else:
+                    speed -= 0.008
+            elif currentKey == keyboard.LEFT:
+                angle -= 0.01
+            elif currentKey == keyboard.RIGHT:
+                angle +=0.01
+            elif currentKey == ord(''):
+                    speed /= 4
+    if not useManual:
+        fLeftVal = front_left_sensor.getValue()
+        fCenterVal = side_right_sensor.getValue()
+        fRightVal = front_right_sensor.getValue()
+
+        sLeftVal = side_left_sensor.getValue()
+        sRightVal = side_right_sensor.getValue()
+        backVal = back_sensor.getValue()
+
+#distance sensor values: 1000:0cm, 800:12cm, 600:24cm, 400:36cm, 200:48cm, 0:60cm
+
+        if fCenterVal > 400 and fCenterVal < 600:
+            speed -= (0.01 * speed)
+        elif fCenterVal > 600 and fCenterVal < 800:
+            speed /= 1.01
+        if backVal > 400 and backVal < 600:
+            speed /= 1.01
+        elif backVal >600 and backVal < 800:
+            speed /= 1.1
+        if fLeftVal > fRightVal:
+            angle += (fLeftVal - fRightVal) / (300 * sensorMax)
+        elif fRightVal > fLeftVal:
+            angle -= (fRightVal - fLeftVal) / (300 * sensorMax)
+        else:
+            angle /= 1.5
+
+            if sLeftVal > 300:
+                angle += 0.003
+            if sRightVal > 300:
+                angle -= 0.003
+                speed += 0.001
+    if speed > maxSpeed:
+        speed = maxSpeed
+    elif speed < -1 * maxSpeed:
+        speed = -1 * maxSpeed 
+    if angle > 0.4:
+        angle = 0.4
+    elif angle < -0.4:
+        angle = -0.4
+
+    if (printCounter % 10) == 0:
+        print("Welcome")
+        print("---")
+        print("\n---controls---")
+        print("'M' to enable manual control")
+        print("'N' to disable manual control")
+        print("'H' to turn on the lights")
+        print("'G' to turn off the lights")
+        if useManual:
+            print("---manual control enabled---")
+        else:
+            print("---manual control disabled---")
+    driver.setCruisingSpeed(speed)
+    driver.setSteeringAngle(angle)
+    printCounter +=1
+            
+                        
