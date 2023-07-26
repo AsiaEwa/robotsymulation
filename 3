@@ -1,0 +1,49 @@
+driver=Driver()
+bsicTimeStep=init(driver.getBasicTimeStep())
+
+sensorTimeStep = 4 * basicTimeStep
+front_left_sensor = driver.getDevice('front_left_sensor')
+front_center_sensor = driver.getDevice('front_center_sensor')
+front_right_sensor = driver.getDevice('front_right_sensor')
+
+front_left_sensor.enable(sensorTimeStep)
+front_center_sensor.enable(sensorTimeStep)
+front_right_sensor.enable(sensorTimeStep)
+
+speed = 0
+angle = 0
+
+maxSpeed = 1.8
+
+driver.setCruisingSpeed(speed)
+
+while driver.step() != -1:
+
+     fLeftVal = front_left_sensor.getValue()
+        fCenterVal = front_center_sensor.getValue()
+        fRightVal = front_right_sensor.getValue()
+
+        sLeftVal = side_left_sensor.getValue()
+        sRightVal = side_right_sensor.getValue()
+        backVal = back_sensor.getValue()
+        
+            if fLeftVal > fRightVal:
+            angle += (fLeftVal - fRightVal) / (300 * sensorMax)
+        elif fRightVal > fLeftVal:
+            angle -= (fRightVal - fLeftVal) / (300 * sensorMax)
+        else:
+            angle /= 1.5
+
+        if sLeftVal > 300:
+            angle += 0.003
+        if sRightVal > 300:
+            angle -= 0.003
+        
+         if speed > maxSpeed:
+        speed = maxSpeed
+    elif speed < -1 * maxSpeed:
+        speed = -1 * maxSpeed
+            if angle > 0.4:
+        angle = 0.4
+    elif angle < -0.4:
+        angle = -0.4
